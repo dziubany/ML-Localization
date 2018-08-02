@@ -1,23 +1,28 @@
 % Script to apply repknn algorithm on real data of sound-based localization
 % input: 
-% 272 sound measurements with length 1000 at a sample rate of 10 kHz (1 s)
-% - 80 training samples (5 for each label from 1 to 16, datasets 1-80)
-% - 192 test samples for prediction (12 for each area, datasets 81-272)
+% 272 set of 10000 sound measurements at a sample rate of 10 kHz (1 s)
+% - 80 training sets (5 for each label from 1 to 16, datasets 1-80)
+% - 192 test sets for prediction (12 for each area, datasets 81-272)
 % - 272 coordinates, 1 for each data set, sorted by time of measurement
 % output:
-% - plot of label-depending colored training data (squares) and 
-%   predicted test data (circles) with number of label
+% - plot of label-depending colored training datasets (squares) and 
+%   predicted test datasets (circles) with number of label
+% parameter:
+% - useToolbox: 1 to use Matlab Toolbox 0 for COSY kNN & kMeans
+% - representatives: set number of representatives (1<representatives<5)
+% - neighbors: set number of neighbors (>0)   
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clear workspace
 clear all;
+useToolbox = 0;
+representatives = 3;
+neighbors = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GET DATA
-% path to file with coordinates - please check
-path = strcat(userpath, '\ML-Localization-master\koords_paper.csv');
-% read coordinates
-Coord = load(path);
+% load coordinates
+Coord = load('koords_paper.csv');
 % path to files with datasets - please check
-path = strcat(userpath, '\ML-Localization-master\dataPaper\');
+path = 'data\';
 % get all fileproperties in directory
 files = dir(path);
 % get filenames
@@ -44,7 +49,7 @@ means = mean(RawData);
 for i = 1:amountFiles
     RawData(:,i) = RawData(:,i) - means(:,i);
 end
-% some measurements containing noise at beginning, clear these parts
+% some datasets containing noise at beginning, clear these parts
 RawData([1:400],5) = 0;
 RawData([1:400],26) = 0;
 RawData([1:400],34) = 0;
@@ -141,25 +146,64 @@ end
 % END SET TRAINING DATA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GET REPRESENTATIVES FROM TRAINING DATA
-% set number representatives
-representatives = 3;
 % clustering to get representatives for each label
-[idx1,R1] = kmeans(M1',representatives,'Distance','cosine','Start','sample');
-[idx2,R2] = kmeans(M2',representatives,'Distance','cosine','Start','sample');
-[idx3,R3] = kmeans(M3',representatives,'Distance','cosine','Start','sample');
-[idx4,R4] = kmeans(M4',representatives,'Distance','cosine','Start','sample');
-[idx5,R5] = kmeans(M5',representatives,'Distance','cosine','Start','sample');
-[idx6,R6] = kmeans(M6',representatives,'Distance','cosine','Start','sample');
-[idx7,R7] = kmeans(M7',representatives,'Distance','cosine','Start','sample');
-[idx8,R8] = kmeans(M8',representatives,'Distance','cosine','Start','sample');
-[idx9,R9] = kmeans(M9',representatives,'Distance','cosine','Start','sample');
-[idx10,R10] = kmeans(M10',representatives,'Distance','cosine','Start','sample');
-[idx11,R11] = kmeans(M11',representatives,'Distance','cosine','Start','sample');
-[idx12,R12] = kmeans(M12',representatives,'Distance','cosine','Start','sample');
-[idx13,R13] = kmeans(M13',representatives,'Distance','cosine','Start','sample');
-[idx14,R14] = kmeans(M14',representatives,'Distance','cosine','Start','sample');
-[idx15,R15] = kmeans(M15',representatives,'Distance','cosine','Start','sample');
-[idx16,R16] = kmeans(M16',representatives,'Distance','cosine','Start','sample');
+if useToolbox == 1
+    [idx1,R1] = kmeans(M1',representatives,'Distance','cosine');
+    [idx2,R2] = kmeans(M2',representatives,'Distance','cosine');
+    [idx3,R3] = kmeans(M3',representatives,'Distance','cosine');
+    [idx4,R4] = kmeans(M4',representatives,'Distance','cosine');
+    [idx5,R5] = kmeans(M5',representatives,'Distance','cosine');
+    [idx6,R6] = kmeans(M6',representatives,'Distance','cosine');
+    [idx7,R7] = kmeans(M7',representatives,'Distance','cosine');
+    [idx8,R8] = kmeans(M8',representatives,'Distance','cosine');
+    [idx9,R9] = kmeans(M9',representatives,'Distance','cosine');
+    [idx10,R10] = kmeans(M10',representatives,'Distance','cosine');
+    [idx11,R11] = kmeans(M11',representatives,'Distance','cosine');
+    [idx12,R12] = kmeans(M12',representatives,'Distance','cosine');
+    [idx13,R13] = kmeans(M13',representatives,'Distance','cosine');
+    [idx14,R14] = kmeans(M14',representatives,'Distance','cosine');
+    [idx15,R15] = kmeans(M15',representatives,'Distance','cosine');
+    [idx16,R16] = kmeans(M16',representatives,'Distance','cosine');
+else
+    % clustering to get representatives for each label
+    [R1] = kMeansCOSY(M1', representatives, 1);
+    [R2] = kMeansCOSY(M2', representatives, 1);
+    [R3] = kMeansCOSY(M3', representatives, 1);
+    [R4] = kMeansCOSY(M4', representatives, 1);
+    [R5] = kMeansCOSY(M5', representatives, 1);
+    [R6] = kMeansCOSY(M6', representatives, 1);
+    [R7] = kMeansCOSY(M7', representatives, 1);
+    [R8] = kMeansCOSY(M8', representatives, 1);
+    [R9] = kMeansCOSY(M9', representatives, 1);
+    [R10] = kMeansCOSY(M10', representatives, 1);
+    [R11] = kMeansCOSY(M11', representatives, 1);
+    [R12] = kMeansCOSY(M12', representatives, 1);
+    [R13] = kMeansCOSY(M13', representatives, 1);
+    [R14] = kMeansCOSY(M14', representatives, 1);
+    [R15] = kMeansCOSY(M15', representatives, 1);
+    [R16] = kMeansCOSY(M16', representatives, 1);
+end
+% Repräsentanten normieren
+for j = 1 : representatives
+    R1(j,:) = R1(j,:)/norm(R1(j,:));
+    R2(j,:) = R2(j,:)/norm(R2(j,:));
+    R3(j,:) = R3(j,:)/norm(R3(j,:));
+    R4(j,:) = R4(j,:)/norm(R4(j,:));
+    R5(j,:) = R5(j,:)/norm(R5(j,:));
+    R6(j,:) = R6(j,:)/norm(R6(j,:));
+    R7(j,:) = R7(j,:)/norm(R7(j,:));
+    R8(j,:) = R8(j,:)/norm(R8(j,:));
+    R9(j,:) = R9(j,:)/norm(R9(j,:));
+    R10(j,:) = R10(j,:)/norm(R10(j,:));
+    R11(j,:) = R11(j,:)/norm(R11(j,:));
+    R12(j,:) = R12(j,:)/norm(R12(j,:));
+    R13(j,:) = R13(j,:)/norm(R13(j,:));
+    R14(j,:) = R14(j,:)/norm(R14(j,:));
+    R15(j,:) = R15(j,:)/norm(R15(j,:));
+    R16(j,:) = R16(j,:)/norm(R16(j,:));
+end
+
+
 % END GET REPRESENTATIVES FROM TRAINING DATA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PREDICT TEST DATA
@@ -171,17 +215,58 @@ for i = 1 : parts
         label2(((i-1)*representatives)+j) = i; % 6-10
     end
 end
-% apply k-nearest neighbors
-mdl = fitcknn([R1;R2;R3;R4;R5;R6;R7;R8;R9;R10;R11;R12;R13;R14;R15;R16],label2,'Distance','cosine') %kNN
-% set number auf neighbors
-mdl.NumNeighbors = 1;
-mdl.Distance = 'cosine'
-mdl.BreakTies = 'nearest'
+if useToolbox == 1
+    % apply k-nearest neighbors with Toolbox
+    mdl = fitcknn([R1;R2;R3;R4;R5;R6;R7;R8;R9;R10;R11;R12;R13;R14;R15;R16],label2,'Distance','cosine');
+    % set number auf neighbors
+    mdl.NumNeighbors = neighbors;
+    mdl.Distance = 'cosine';
+    mdl.BreakTies = 'nearest';
+    dist = mdl.Distance;
+else
+    distance = 1;
+    if distance == 1
+        dist = 'cosine';
+    elseif distance == 2
+        dist = 'euclidean';
+    elseif distance == 3
+        dist = 'sqeuclidean';
+    end
+end
 
 % END PREDICT TEST DATA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+quote = 0;
+tested = 0;
+correct = 0;
+s = zeros(1, length(Data(:,1)));
+for y = 1:amountFiles
+    if (label(y) == 0)
+        tested = tested + 1;
+        if useToolbox == 1
+            % set s to the label of the next representatives to actual dataset  
+            s(y) = predict(mdl,Data(:,y)');
+        else
+            R = [R1;R2;R3;R4;R5;R6;R7;R8;R9;R10;R11;R12;R13;R14;R15;R16];
+            s(y) = kNNCOSY(R,label2,neighbors,Data(:,y),1);
+        end
+        areal = fix((y-81)/12) + 1;
+        if(s(y) == areal)
+            correct = correct + 1;
+        end
+    end
+end
+quote=correct/tested;
+
 % PLOT RESULTS
-figure('Name',mdl.Distance);
+figure('Name',dist);
+if useToolbox == 1
+    title(sprintf('Representative kNN with Toolbox\nCorrect: %.2f', quote*100));
+else
+    title(sprintf('Representative kNN without Toolbox\nCorrect: %.2f', quote*100));
+end
+
 hold
 % set size and position of figure
 set(gcf, 'Position', [0, 0, 1000, 1000])
@@ -196,58 +281,55 @@ xoffset = 0.52;
 yoffset = 0.1;
 % check all files
 for y = 1:amountFiles
-    % if no training data
-    if (label(y) == 0)
-        % set s to the label of the next representatives to actual dataset
-        
-        s = predict(mdl,Data(:,y)');
+        % if no training data
+    if (label(y) == 0) 
         % plot color and number at position of dataset depending on s
-        if (s==1)
+        if (s(y)==1)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'r');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'13')
-        elseif (s==2)
+        elseif (s(y)==2)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'b');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'9')
-        elseif (s==3)
+        elseif (s(y)==3)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'g');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'5')
-        elseif (s==4)
+        elseif (s(y)==4)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'y');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'1')
-        elseif (s==5)
+        elseif (s(y)==5)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'm');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'14')
-        elseif (s==6)
+        elseif (s(y)==6)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'c');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'10')
-        elseif (s==7)
+        elseif (s(y)==7)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'k');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'6')
-        elseif (s==8)
+        elseif (s(y)==8)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', [1 0.4 0.6]);
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'2')
-        elseif (s==9)
+        elseif (s(y)==9)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'r');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'15')
-        elseif (s==10)
+        elseif (s(y)==10)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'b');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'11')
-        elseif (s==11)
+        elseif (s(y)==11)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'g');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'7')
-        elseif (s==12)
+        elseif (s(y)==12)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'y');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'3')
-        elseif (s==13)
+        elseif (s(y)==13)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'm');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'16')
-        elseif (s==14)
+        elseif (s(y)==14)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'c');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'12')
-        elseif (s==15)
+        elseif (s(y)==15)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', 'k');
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'8')
-        elseif (s==16)
+        elseif (s(y)==16)
             plot(Coord(y,1),Coord(y,2),'o', 'LineWidth', 2, 'MarkerSize', 18, 'Color', [1 0.4 0.6]);
             text((Coord(y,1)-xoffset),(Coord(y,2)+yoffset),'4')
         end
