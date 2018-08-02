@@ -22,7 +22,7 @@ neighbors = 1;
 % load coordinates
 Coord = load('koords_paper.csv');
 % path to files with datasets - please check
-path = 'data\';
+path = 'dataPaper\';
 % get all fileproperties in directory
 files = dir(path);
 % get filenames
