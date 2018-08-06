@@ -48,6 +48,7 @@ function [labelX0] = kNNCOSY(M, labelM, k, X0, mode)
     % on each testset,
     for test = 1 : lenX0
         % check for each trainingset,
+        distk = inf(1, k);
         for i = 1 : lenM;
              % distance between testset and traingset
              if mode == 1
