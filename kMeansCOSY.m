@@ -70,9 +70,9 @@ function [R] = kMeansCOSY(M, k, mode)
        % for each of the k representatives
        for i = 1 : k
            members = sum(representative == i);
+	   tempM = zeros(1, attributes);
            % set new Rnew
            if members ~= 0
-               tempM = zeros(1, attributes);
                % calculate point with min distance to each trainingset to
                % represent
                for j = 1 : nrSets
